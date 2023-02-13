@@ -28,7 +28,7 @@ class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
   @override
   Widget build(BuildContext context) {
     final productsContainer =
-        Provider.of<ProductsProvider>(context, listen: false);
+        Provider.of<ProductsProvider>(context, listen: true);
     final cart = Provider.of<Cart>(context);
     return Scaffold(
       appBar: AppBar(
@@ -68,7 +68,13 @@ class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
           )
         ],
       ),
-      body: ProductsGrid(_showOnlyFavorites),
+      body: productsContainer.items.isEmpty
+          ? Center(
+              child: CircularProgressIndicator(
+                color: Theme.of(context).colorScheme.secondary,
+              ),
+            )
+          : ProductsGrid(_showOnlyFavorites),
       drawer: MainDrawer(),
     );
   }
