@@ -53,14 +53,14 @@ class _OrderItemState extends State<OrderItem> {
                             Text(
                               prod.title,
                               style: TextStyle(
-                                fontSize: 18,
+                                fontSize: 15,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             Text(
                               '${prod.quantity}x \$${prod.price}',
                               style: TextStyle(
-                                fontSize: 18,
+                                fontSize: 15,
                                 color: Colors.grey,
                               ),
                             ),

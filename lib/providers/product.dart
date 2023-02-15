@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
+import '../models/http_exception.dart';
+
 class Product with ChangeNotifier {
   final String id;
   final String title;
@@ -20,23 +22,27 @@ class Product with ChangeNotifier {
     this.isFavorite = false,
   });
 
-  void toggleFavoriteStatus() async {
+  Future<void> toggleFavoriteStatus() async {
     isFavorite = !isFavorite;
+    notifyListeners();
 
     final url = Uri.parse(
-        'https://fluttershopapp-36c65-default-rtdb.europe-west1.firebasedatabase.app/products/$id.json');
+        'https://fluttershopapp-36c65-default-rtdb.europe-west1.firebasedatabase.app/products/$id');
     try {
-      await http.patch(
+      final response = await http.patch(
         url,
         body: json.encode({
           'isFavorite': isFavorite,
         }),
       );
+      if (response.statusCode >= 400) {
+        isFavorite = !isFavorite;
+        notifyListeners();
+        throw HttpException("Could not update product");
+      }
     } catch (e) {
       print(e);
       rethrow;
     }
-
-    notifyListeners();
   }
 }

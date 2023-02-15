@@ -38,7 +38,8 @@ class Orders with ChangeNotifier {
               .toList(),
         ));
       });
-      _orders = loadedOrders.reversed.toList();
+      loadedOrders.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+      _orders = loadedOrders;
       notifyListeners();
     } catch (e) {
       print(e);
@@ -48,12 +49,13 @@ class Orders with ChangeNotifier {
 
   get count => orders.length;
 
-  void addOrder(List<CartItem> cartProducts, double total) async {
+  Future<void> addOrder(List<CartItem> cartProducts, double total) async {
+    final date = DateTime.now();
     try {
       final response = await http.post(url,
           body: json.encode({
             'amount': total,
-            'dateTime': DateTime.now(),
+            'dateTime': date.toIso8601String(),
             'products': cartProducts
                 .map((cp) => {
                       'id': cp.id,
@@ -69,7 +71,7 @@ class Orders with ChangeNotifier {
           id: json.decode(response.body)['name'],
           amount: total,
           products: cartProducts,
-          dateTime: DateTime.now(),
+          dateTime: date,
         ),
       );
     } catch (error) {
