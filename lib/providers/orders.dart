@@ -5,10 +5,11 @@ import 'dart:convert';
 import 'cart.dart';
 
 class Orders with ChangeNotifier {
-  static var url = Uri.parse(
-      'https://fluttershopapp-36c65-default-rtdb.europe-west1.firebasedatabase.app/orders.json');
-
-  Orders() {
+  static var url;
+  final String authToken;
+  Orders(this.authToken, this._orders) {
+    url = Uri.parse(
+        'https://fluttershopapp-36c65-default-rtdb.europe-west1.firebasedatabase.app/orders.json?auth=$authToken');
     fetchAndSetOrders();
   }
 

@@ -23,11 +23,12 @@ class OrdersScreen extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           } else {
             if (snapshot.error != null) {
-              scaffold.showSnackBar(
-                const SnackBar(
-                  content: Text("An error occurred!"),
-                ),
-              );
+              Future.delayed(Duration.zero)
+                  .then((value) => scaffold.showSnackBar(
+                        const SnackBar(
+                          content: Text("An error occurred!"),
+                        ),
+                      ));
               return const Center(child: Text("An error occurred!"));
             } else {
               return Consumer<Orders>(

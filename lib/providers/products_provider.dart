@@ -7,12 +7,13 @@ import 'package:http/http.dart' as http;
 import 'product.dart';
 
 class ProductsProvider with ChangeNotifier {
-  ProductsProvider() {
+  ProductsProvider(this.token, this._items) {
+    url = Uri.parse(
+        'https://fluttershopapp-36c65-default-rtdb.europe-west1.firebasedatabase.app/products.json?auth=$token');
     fetchAndSetProducts();
   }
-
-  static var url = Uri.parse(
-      'https://fluttershopapp-36c65-default-rtdb.europe-west1.firebasedatabase.app/products.json');
+  Uri? url;
+  final token;
 
   List<Product> _items = [];
 
@@ -30,7 +31,7 @@ class ProductsProvider with ChangeNotifier {
       if (clearData) {
         _items = [];
       }
-      final response = await http.get(url);
+      final response = await http.get(url!);
       final extractedData = json.decode(response.body) as Map<String, dynamic>;
       extractedData.forEach((productId, productData) {
         _items.add(Product(
@@ -53,7 +54,7 @@ class ProductsProvider with ChangeNotifier {
     // return
 
     try {
-      final response = await http.post(url,
+      final response = await http.post(url!,
           body: json.encode({
             'title': product.title,
             'description': product.description,
@@ -82,7 +83,7 @@ class ProductsProvider with ChangeNotifier {
 
   Future<void> deleteProduct(String id) async {
     final url = Uri.parse(
-        'https://fluttershopapp-36c65-default-rtdb.europe-west1.firebasedatabase.app/products/$id.json');
+        'https://fluttershopapp-36c65-default-rtdb.europe-west1.firebasedatabase.app/products/$id.json?auth=$token');
     var index = _items.indexWhere((product) => product.id == id);
     var deletedItem = _items[index];
     _items.removeAt(index);
@@ -103,7 +104,7 @@ class ProductsProvider with ChangeNotifier {
   Future updateProduct(Product editedProduct) async {
     if (_items.indexWhere((element) => element.id == editedProduct.id) != -1) {
       final url = Uri.parse(
-          'https://fluttershopapp-36c65-default-rtdb.europe-west1.firebasedatabase.app/products/${editedProduct.id}.json');
+          'https://fluttershopapp-36c65-default-rtdb.europe-west1.firebasedatabase.app/products/${editedProduct.id}.json?auth=$token');
       try {
         await http.patch(
           url,
