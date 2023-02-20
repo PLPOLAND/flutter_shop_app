@@ -5,6 +5,7 @@ import 'package:flutter_shop_app/screens/auth_screen.dart';
 import 'package:flutter_shop_app/screens/edit_product_screen.dart';
 import 'package:flutter_shop_app/screens/orders_screen.dart';
 import 'package:flutter_shop_app/screens/product_detail_screen.dart';
+import 'package:flutter_shop_app/screens/splash_screen.dart';
 import 'package:flutter_shop_app/screens/user_products_screen.dart';
 import 'package:provider/provider.dart';
 
@@ -27,17 +28,18 @@ class MainApp extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => Auth()),
         ChangeNotifierProxyProvider<Auth, ProductsProvider>(
           update: (context, auth, prev) =>
-              ProductsProvider(auth.token, prev!.items),
-          create: (context) => ProductsProvider('', []),
+              ProductsProvider(auth.token, auth.userID, prev!.items),
+          create: (context) => ProductsProvider('', '', []),
         ),
         ChangeNotifierProvider(create: (context) => Cart()),
         ChangeNotifierProxyProvider<Auth, Orders>(
-          update: (context, auth, prev) => Orders(auth.token, prev!.orders),
-          create: (context) => Orders('', []),
+          update: (context, auth, prev) =>
+              Orders(auth.token, auth.userID, prev!.orders),
+          create: (context) => Orders('', '', []),
         ),
       ],
       child: Consumer<Auth>(
-        builder: (context, value, _) => MaterialApp(
+        builder: (context, auth, _) => MaterialApp(
           title: 'MyShop',
           theme: ThemeData(
             primarySwatch: Colors.red,
@@ -49,9 +51,16 @@ class MainApp extends StatelessWidget {
                 background: Color.fromARGB(255, 255, 173, 167)),
             fontFamily: 'Lato',
           ),
+          home: auth.isAuth
+              ? ProductsOverviewScreen()
+              : FutureBuilder(
+                  future: auth.tryAutoLogin(),
+                  builder: (context, snapshot) =>
+                      snapshot.connectionState == ConnectionState.waiting
+                          ? SplashScreen()
+                          : AuthScreen(),
+                ),
           routes: {
-            '/': (context) =>
-                value.isAuth ? ProductsOverviewScreen() : AuthScreen(),
             UserProductsScreen.routeName: (context) => UserProductsScreen(),
             ProductDetailScreen.routeName: (context) =>
                 const ProductDetailScreen(),

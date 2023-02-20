@@ -7,7 +7,9 @@ import 'package:http/http.dart' as http;
 import 'product.dart';
 
 class ProductsProvider with ChangeNotifier {
-  ProductsProvider(this.token, this._items) {
+  final userID;
+
+  ProductsProvider(this.token, this.userID, this._items) {
     url = Uri.parse(
         'https://fluttershopapp-36c65-default-rtdb.europe-west1.firebasedatabase.app/products.json?auth=$token');
     fetchAndSetProducts();
@@ -25,14 +27,28 @@ class ProductsProvider with ChangeNotifier {
     return _items.where((product) => product.isFavorite).toList();
   }
 
-  Future<void> fetchAndSetProducts({bool clearData = false}) async {
+  Future<void> fetchAndSetProducts([bool filterByUser = false]) async {
+    if (filterByUser) {
+      url = Uri.parse(
+          'https://fluttershopapp-36c65-default-rtdb.europe-west1.firebasedatabase.app/products.json?auth=$token&orderBy="creatorID"&equalTo="$userID"');
+    } else {
+      url = Uri.parse(
+          'https://fluttershopapp-36c65-default-rtdb.europe-west1.firebasedatabase.app/products.json?auth=$token');
+    }
+    if (token == "") {
+      // if no token, can't fetch data
+      return;
+    }
     print("fetching products");
     try {
-      if (clearData) {
-        _items = [];
-      }
       final response = await http.get(url!);
       final extractedData = json.decode(response.body) as Map<String, dynamic>;
+
+      final favoriteResponse = await http.get(Uri.parse(
+          'https://fluttershopapp-36c65-default-rtdb.europe-west1.firebasedatabase.app/userFavorites/$userID.json?auth=$token'));
+
+      final favoriteData = json.decode(favoriteResponse.body);
+      _items = [];
       extractedData.forEach((productId, productData) {
         _items.add(Product(
           id: productId,
@@ -40,7 +56,9 @@ class ProductsProvider with ChangeNotifier {
           description: productData['description'],
           price: productData['price'],
           imageUrl: productData['imageUrl'],
-          isFavorite: productData['isFavorite'],
+          isFavorite: favoriteData == null
+              ? false
+              : favoriteData[productId]?['isFavorite'] ?? false,
         ));
       });
       notifyListeners();
@@ -60,7 +78,7 @@ class ProductsProvider with ChangeNotifier {
             'description': product.description,
             'imageUrl': product.imageUrl,
             'price': product.price,
-            'isFavorite': product.isFavorite,
+            'creatorID': userID,
           }));
       final newProduct = Product(
         title: product.title,

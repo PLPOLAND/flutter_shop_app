@@ -7,9 +7,11 @@ import 'cart.dart';
 class Orders with ChangeNotifier {
   static var url;
   final String authToken;
-  Orders(this.authToken, this._orders) {
+  final String userID;
+
+  Orders(this.authToken, this.userID, this._orders) {
     url = Uri.parse(
-        'https://fluttershopapp-36c65-default-rtdb.europe-west1.firebasedatabase.app/orders.json?auth=$authToken');
+        'https://fluttershopapp-36c65-default-rtdb.europe-west1.firebasedatabase.app/orders/$userID.json?auth=$authToken');
     fetchAndSetOrders();
   }
 
@@ -20,8 +22,15 @@ class Orders with ChangeNotifier {
   }
 
   Future<void> fetchAndSetOrders() async {
+    if (authToken == "") {
+      return;
+    }
     try {
       final response = await http.get(url);
+      if (response.body == "null") {
+        notifyListeners();
+        return;
+      }
       final extractedData = json.decode(response.body) as Map<String, dynamic>;
       final List<OrderItem> loadedOrders = [];
       extractedData.forEach((orderId, orderData) {
